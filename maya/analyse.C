@@ -13,7 +13,9 @@ void analyse()
 {
 
    cout<<"1"<<endl;
-   TH1F* hntot = new TH1F("hntot","number particles",100,0.,500.);
+   TH1F* hntot = new TH1F("hntot","number particles",100,0.,1000.);
+   TH2F* hnchneu = new TH2F("hnchneu","number charged versus neutral", 100,0.,1000.,100,0.,1000.);
+   TH2F* hncenf = new TH2F("hncenf","number central versus forward", 100,0.,100.,100,0.,100.);
    TH1F* hpid = new TH1F("hpid","pid particles",1000,-500.,500.);
    TH1F* hpT = new TH1F("hpT","PT particles",100,0.,10.);
    TH1F* heta = new TH1F("heta","eta particles",100,-10.,10.);
@@ -50,6 +52,7 @@ void analyse()
 
   Long64_t nentries = t1->GetEntries();
   for (Long64_t jentry=0; jentry<nentries;jentry++) {  // loop over events
+  //  for (Long64_t jentry=0; jentry<100;jentry++) {  // loop over events
     cout<<"     "<<jentry<<endl;
     t1->GetEntry(jentry);
 
@@ -57,10 +60,21 @@ void analyse()
 
 
     hntot->Fill(nTot);
+    if(nCharged>3&&nNeutral>3) hnchneu->Fill(nCharged,nNeutral);
+
+    Int_t ncnt=0;
+    Int_t nCen=0;
+    Int_t nF=0;; // count in different rapidity regions    
     for(int jj=0; jj<nTot; ++jj) {  // for each particle         
       hpid->Fill(APID[jj]);
       vv->SetPxPyPzE(Apx[jj],Apy[jj],Apz[jj],Ae[jj]);        
       if(fabs(vv->Eta())<5.&&vv->Pt()>0.1) {
+	ncnt+=1;
+	if(fabs(vv->Eta())<3.) {
+	  nCen+=1;
+	} else {
+	  nF+=1;
+	}
         hpT->Fill(vv->Pt());
         heta->Fill(vv->Eta());
         hphi->Fill(vv->Phi());
@@ -79,6 +93,8 @@ void analyse()
         }
       }
     }  //end loop over particles                                                                  
+    //    cout<<nCen<<" "<<nF<<" "<<ncnt<<endl;
+    if(nCen>2&&nF>2) hncenf->Fill(nCen,nF);
 
   }  // end loop over events
 
@@ -101,6 +117,10 @@ void analyse()
    c1->Print("aaapt.gif");
    hetaphi->Draw("lego");
    c1->Print("aaaetaphi.gif");
+   hnchneu->Draw("lego");
+   c1->Print("aaanchneu.gif");
+   hncenf->Draw("lego");
+   c1->Print("aaanccenf.gif");
 
    //   hdphi->Draw();      
 
